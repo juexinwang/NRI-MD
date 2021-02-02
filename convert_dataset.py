@@ -132,7 +132,7 @@ def read_feature_MD_file_slidingwindow(filename, timestep_size, feature_size, re
             elif(line.startswith("ENDMDL") and nflag):
                 nflag = False
     f.close()
-    print(feature.shape)
+    # print(feature.shape)
     return feature
 
 
@@ -290,7 +290,7 @@ def convert_dataset_md_single(MDfolder, startIndex, experiment_size, timestep_si
     for i in range(startIndex, experiment_size+1):
         print("Start: "+str(i)+"th PDB")
         for j in range(window_start, window_end+1):
-            print(str(i)+" "+str(j))
+            # print(str(i)+" "+str(j))
             features.append(read_feature_MD_file_slidingwindow(MDfolder+"ca_"+str(
                 i)+".pdb", timestep_size, feature_size, residue_size, interval, j, aa_start, aa_end))
             edges.append(np.zeros((residue_size, residue_size)))
