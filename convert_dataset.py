@@ -341,18 +341,14 @@ def convert_dataset_md(feature_filename, startIndex, experiment_size, timestep_s
 # use sliding window to add
 
 
-def convert_dataset_md_single(feature_filename, startIndex, experiment_size, timestep_size, feature_size, residue_size, interval, window_start, window_end, aa_start, aa_end):
+def convert_dataset_md_single(MDfolder, MDfilename, timestep_size, feature_size, residue_size, interval, window_start, window_end, aa_start, aa_end):
     features = list()
     edges = list()
 
-    for i in range(startIndex, experiment_size+1):
-        print("Start: "+str(i)+"th PDB")
-        for j in range(window_start, window_end+1):
-            print(str(i)+" "+str(j))
-# features.append(read_feature_MD_file_slidingwindow(feature_filename+"smd"+str(i)+".pdb", timestep_size, feature_size, residue_size, interval,j))
-            features.append(read_feature_MD_file_slidingwindow(feature_filename+"ca_"+str(
-                i)+".pdb", timestep_size, feature_size, residue_size, interval, j, aa_start, aa_end))
-            edges.append(np.zeros((residue_size, residue_size)))
+    for i in range(window_start, window_end+1):
+        features.append(read_feature_MD_file_slidingwindow(MDfolder+MDfilename,
+                                                           timestep_size, feature_size, residue_size, interval, i, aa_start, aa_end))
+        edges.append(np.zeros((residue_size, residue_size)))
     print("***")
     print(len(features))
     print("###")
@@ -399,26 +395,24 @@ def timepoint_sim(feature, fold):
     return feature_out
 
 
-feature_filename = "./data/pdb/"
+MDfolder = "./data/pdb/"
+MDfilename = 'toy.pdb'
 
-# All as the training
-# features, edges = convert_dataset_md(feature_filename, startIndex=1, experiment_size=1000, timestep_size=50, feature_size=6, residue_size=20, interval=1000)
-
-features, edges = convert_dataset_md_single(feature_filename, startIndex=20, experiment_size=38, timestep_size=50,
-                                            feature_size=6, residue_size=83, interval=250, window_start=1, window_end=200, aa_start=11, aa_end=93)
+features, edges = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=50,
+                                            feature_size=6, residue_size=77, interval=100, window_start=0, window_end=1, aa_start=11, aa_end=93)
 
 np.save('features.npy', features)
 np.save('edges.npy', edges)
 
-features_val, edges_val = convert_dataset_md_single(feature_filename, startIndex=38, experiment_size=39, timestep_size=50,
-                                                    feature_size=6, residue_size=83, interval=250, window_start=1, window_end=200, aa_start=11, aa_end=93)
+features_val, edges_val = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=50,
+                                                    feature_size=6, residue_size=77, interval=30, window_start=0, window_end=1, aa_start=11, aa_end=93)
 
 np.save('features_val.npy', features_val)
 np.save('edges_val.npy', edges_val)
 
 print("Generate Test")
-features_test, edges_test = convert_dataset_md_single(feature_filename, startIndex=40, experiment_size=40, timestep_size=100,
-                                                      feature_size=6, residue_size=83, interval=125, window_start=1, window_end=400, aa_start=11, aa_end=93)
+features_test, edges_test = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=100,
+                                                      feature_size=6, residue_size=77, interval=33, window_start=0, window_end=1, aa_start=11, aa_end=93)
 
 np.save('features_test.npy', features_test)
 np.save('edges_test.npy', edges_test)
