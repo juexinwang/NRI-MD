@@ -47,4 +47,6 @@ If you make use of this code in your own work, please cite our paper:
 ```
 
 ### Ref
+Official implementation of neural relational inference
+https://github.com/ethanfetaya/NRI
 
