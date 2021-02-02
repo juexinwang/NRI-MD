@@ -114,17 +114,18 @@ def binary_accuracy(output, labels):
     correct = correct.sum()
     return correct / len(labels)
 
+
 def load_dataset_train(batch_size=1, suffix='', number_exp=1, dims=6):
     feat_train = np.load('data/features.npy')
     edges_train = np.load('data/edges.npy')
 
-    assert(feat_train.shape[0]>=number_exp)
-    assert(feat_train.shape[2]>=dims)
-    feat_train = feat_train[0:number_exp,:,0:dims,:]
-    edges_train = edges_train[0:number_exp,:,:]
-    
+    assert(feat_train.shape[0] >= number_exp)
+    assert(feat_train.shape[2] >= dims)
+    feat_train = feat_train[0:number_exp, :, 0:dims, :]
+    edges_train = edges_train[0:number_exp, :, :]
+
     # [num_samples, num_timesteps, num_dims, num_genes]
-    num_genes = feat_train.shape[3]   
+    num_genes = feat_train.shape[3]
 
     feat_max = feat_train.max()
     feat_min = feat_train.min()
@@ -178,14 +179,20 @@ def load_dataset_train_valid_test(batch_size=1, suffix='', number_exp=1, number_
     vel_min = feat_train[:, :, 3:6, :].min()
 
     # Normalize to [-1, 1]
-    loc_train = (feat_train[:, :, 0:3, :] - loc_min) * 2 / (loc_max - loc_min) - 1
-    vel_train = (feat_train[:, :, 3:6, :] - vel_min) * 2 / (vel_max - vel_min) - 1
+    loc_train = (feat_train[:, :, 0:3, :] - loc_min) * \
+        2 / (loc_max - loc_min) - 1
+    vel_train = (feat_train[:, :, 3:6, :] - vel_min) * \
+        2 / (vel_max - vel_min) - 1
 
-    loc_valid = (feat_valid[:, :, 0:3, :] - loc_min) * 2 / (loc_max - loc_min) - 1
-    vel_valid = (feat_valid[:, :, 3:6, :] - vel_min) * 2 / (vel_max - vel_min) - 1
+    loc_valid = (feat_valid[:, :, 0:3, :] - loc_min) * \
+        2 / (loc_max - loc_min) - 1
+    vel_valid = (feat_valid[:, :, 3:6, :] - vel_min) * \
+        2 / (vel_max - vel_min) - 1
 
-    loc_test = (feat_test[:, :, 0:3, :] - loc_min) * 2 / (loc_max - loc_min) - 1
-    vel_test = (feat_test[:, :, 3:6, :] - vel_min) * 2 / (vel_max - vel_min) - 1
+    loc_test = (feat_test[:, :, 0:3, :] - loc_min) * \
+        2 / (loc_max - loc_min) - 1
+    vel_test = (feat_test[:, :, 3:6, :] - vel_min) * \
+        2 / (vel_max - vel_min) - 1
 
     feat_train = np.concatenate((loc_train, vel_train), axis=2)
     feat_valid = np.concatenate((loc_valid, vel_valid), axis=2)
@@ -236,29 +243,33 @@ def load_dataset_train_test(batch_size=1, suffix='', number_exp=1, number_expsta
     feat_test = np.load('data/features_test.npy')
     edges_test = np.load('data/edges_test.npy')
 
-    assert(feat_train.shape[0]>=number_exp)
-    assert(feat_train.shape[2]>=dims)
-    feat_train = feat_train[number_expstart:number_exp,:,0:dims,:]
-    edges_train = edges_train[number_expstart:number_exp,:,:]
-    feat_test = feat_test[:,:,0:dims,:]
-    
-    # [num_samples, num_timesteps, num_dims, num_genes]
-    num_genes = feat_train.shape[3]   
+    assert(feat_train.shape[0] >= number_exp)
+    assert(feat_train.shape[2] >= dims)
+    feat_train = feat_train[number_expstart:number_exp, :, 0:dims, :]
+    edges_train = edges_train[number_expstart:number_exp, :, :]
+    feat_test = feat_test[:, :, 0:dims, :]
 
-    loc_max = feat_train[:,:,0:3,:].max()
-    loc_min = feat_train[:,:,0:3,:].min()
-    vel_max = feat_train[:,:,3:6,:].max()
-    vel_min = feat_train[:,:,3:6,:].min()
+    # [num_samples, num_timesteps, num_dims, num_genes]
+    num_genes = feat_train.shape[3]
+
+    loc_max = feat_train[:, :, 0:3, :].max()
+    loc_min = feat_train[:, :, 0:3, :].min()
+    vel_max = feat_train[:, :, 3:6, :].max()
+    vel_min = feat_train[:, :, 3:6, :].min()
 
     # Normalize to [-1, 1]
-    loc_train = (feat_train[:,:,0:3,:] - loc_min) * 2 / (loc_max - loc_min) - 1
-    vel_train = (feat_train[:,:,3:6,:] - vel_min) * 2 / (vel_max - vel_min) - 1
+    loc_train = (feat_train[:, :, 0:3, :] - loc_min) * \
+        2 / (loc_max - loc_min) - 1
+    vel_train = (feat_train[:, :, 3:6, :] - vel_min) * \
+        2 / (vel_max - vel_min) - 1
 
-    loc_test = (feat_test[:,:,0:3,:] - loc_min) * 2 / (loc_max - loc_min) - 1
-    vel_test = (feat_test[:,:,3:6,:] - vel_min) * 2 / (vel_max - vel_min) - 1
+    loc_test = (feat_test[:, :, 0:3, :] - loc_min) * \
+        2 / (loc_max - loc_min) - 1
+    vel_test = (feat_test[:, :, 3:6, :] - vel_min) * \
+        2 / (vel_max - vel_min) - 1
 
-    feat_train = np.concatenate((loc_train,vel_train), axis=2)
-    feat_test  = np.concatenate((loc_test,vel_test), axis=2)
+    feat_train = np.concatenate((loc_train, vel_train), axis=2)
+    feat_test = np.concatenate((loc_test, vel_test), axis=2)
 
     # Reshape to: [num_samples, num_genes, num_timesteps, num_dims]
     feat_train = np.transpose(feat_train, [0, 3, 1, 2])
@@ -274,7 +285,7 @@ def load_dataset_train_test(batch_size=1, suffix='', number_exp=1, number_expsta
         np.where(np.ones((num_genes, num_genes)) - np.eye(num_genes)),
         [num_genes, num_genes])
     edges_train = edges_train[:, off_diag_idx]
-    edges_test  = edges_test[:, off_diag_idx]
+    edges_test = edges_test[:, off_diag_idx]
 
     feat_train = torch.FloatTensor(feat_train)
     edges_train = torch.LongTensor(edges_train)
@@ -282,10 +293,10 @@ def load_dataset_train_test(batch_size=1, suffix='', number_exp=1, number_expsta
     edges_test = torch.LongTensor(edges_test)
 
     train_data = TensorDataset(feat_train, edges_train)
-    test_data  = TensorDataset(feat_test, edges_test)
+    test_data = TensorDataset(feat_test, edges_test)
 
     train_data_loader = DataLoader(train_data, batch_size=batch_size)
-    test_data_loader  = DataLoader(test_data, batch_size=batch_size)
+    test_data_loader = DataLoader(test_data, batch_size=batch_size)
 
     return train_data_loader, test_data_loader, loc_max, loc_min, vel_max, vel_min
 
@@ -381,8 +392,10 @@ def load_kuramoto_data(batch_size=1, suffix=''):
     feat_max = feat_train.max(0).max(0).max(0)
     feat_min = feat_train.min(0).min(0).min(0)
 
-    feat_max = np.expand_dims(np.expand_dims(np.expand_dims(feat_max, 0), 0), 0)
-    feat_min = np.expand_dims(np.expand_dims(np.expand_dims(feat_min, 0), 0), 0)
+    feat_max = np.expand_dims(np.expand_dims(
+        np.expand_dims(feat_max, 0), 0), 0)
+    feat_min = np.expand_dims(np.expand_dims(
+        np.expand_dims(feat_min, 0), 0), 0)
 
     # Normalize to [-1, 1]
     feat_train = (feat_train - feat_min) * 2 / (feat_max - feat_min) - 1
@@ -569,8 +582,8 @@ def get_minimum_distance(data):
     data = data[:, :, :, :2].transpose(1, 2)
     data_norm = (data ** 2).sum(-1, keepdim=True)
     dist = data_norm + \
-           data_norm.transpose(2, 3) - \
-           2 * torch.matmul(data, data.transpose(2, 3))
+        data_norm.transpose(2, 3) - \
+        2 * torch.matmul(data, data.transpose(2, 3))
     min_dist, _ = dist.min(1)
     return min_dist.view(min_dist.size(0), -1)
 

@@ -1,52 +1,23 @@
-from scipy import interpolate
-from copy import deepcopy
-import argparse
-import numpy as np
 import time
+import numpy as np
+import argparse
+from copy import deepcopy
+from scipy import interpolate
 
 parser = argparse.ArgumentParser('Generate features from pdb')
-parser.add_argument('--simulation', type=str, default='springs',
-                    help='What simulation to generate.')
-parser.add_argument('--num-train', type=int, default=500000,
-                    help='Number of training simulations to generate.')
-parser.add_argument('--num-valid', type=int, default=10000,
-                    help='Number of validation simulations to generate.')
-parser.add_argument('--num-test', type=int, default=10000,
-                    help='Number of test simulations to generate.')
-parser.add_argument('--n-balls', type=int, default=10,
-                    help='Number of balls in the simulation.')
-parser.add_argument('--seed', type=int, default=42,
-                    help='Random seed.')
-parser.add_argument('--prior-strength', type=float, default=0.1,
-                    help='prior strength')
-
+parser.add_argument('--MDfolder', type=str, default="data/pdb/",
+                    help='folder of pdb MD')
+parser.add_argument('--residue-size', type=int, default=77,
+                    help='residue size of the MD pdb')
+parser.add_argument('--feature-size', type=int, default=6,
+                    help='The number of features used in study( position (X,Y,Z) + velocity (X,Y,Z) ).')
 args = parser.parse_args()
 
 
-def generate_dataset(num_sims, length, sample_freq):
-    loc_all = list()
-    vel_all = list()
-    edges_all = list()
-
-    for i in range(num_sims):
-        t = time.time()
-        loc, vel, edges = sim.sample_trajectory(T=length,
-                                                sample_freq=sample_freq)
-        if i % 100 == 0:
-            print("Iter: {}, Simulation time: {}".format(i, time.time() - t))
-        loc_all.append(loc)
-        vel_all.append(vel)
-        edges_all.append(edges)
-
-    loc_all = np.stack(loc_all)
-    vel_all = np.stack(vel_all)
-    edges_all = np.stack(edges_all)
-
-    return loc_all, vel_all, edges_all
-
-
 def read_feature_file(filename, feature_size=1, gene_size=10, timestep_size=21):
-    # read single expriments of all time points
+    """
+    Read single expriments of all time points
+    """
     feature = np.zeros((timestep_size, feature_size, gene_size))
 
     time_count = -1
@@ -83,14 +54,11 @@ def read_feature_Residue_file(filename):
             count = count+1
     return resdict
 
-# timestep_size=50
-# feature_size = 6 loc + vel
-#residue_size = 20
-#interval = 1000
-
 
 def read_feature_MD_file(filename, timestep_size, feature_size, residue_size, interval):
-    # read single expriments of all time points
+    """
+    Read single expriments of all time points
+    """
     feature = np.zeros((timestep_size, feature_size, residue_size))
 
     flag = False
@@ -108,35 +76,24 @@ def read_feature_MD_file(filename, timestep_size, feature_size, residue_size, in
                 if (modelNum % interval == 2):
                     nflag = True
             elif(line.startswith("ATOM") and words[2] == "CA" and flag):
-                # print(line)
                 numStep = int(modelNum/interval)
-                # print(line)
-                # # print(words[1]+"\t"+words[5])
-                # print(modelNum)
-                # print(str(modelNum)+"\t"+str(numStep))
-                feature[numStep, 0, int(words[4])-1] = float(words[5])
-                feature[numStep, 1, int(words[4])-1] = float(words[6])
-                feature[numStep, 2, int(words[4])-1] = float(words[7])
+                feature[numStep, 0, int(words[5])-1] = float(words[6])
+                feature[numStep, 1, int(words[5])-1] = float(words[7])
+                feature[numStep, 2, int(words[5])-1] = float(words[8])
             elif(line.startswith("ATOM") and words[2] == "CA" and nflag):
                 numStep = int(modelNum/interval)
                 feature[numStep, 3, int(
-                    words[4])-1] = float(words[5])-feature[numStep, 0, int(words[4])-1]
+                    words[5])-1] = float(words[6])-feature[numStep, 0, int(words[5])-1]
                 feature[numStep, 4, int(
-                    words[4])-1] = float(words[6])-feature[numStep, 1, int(words[4])-1]
+                    words[5])-1] = float(words[7])-feature[numStep, 1, int(words[5])-1]
                 feature[numStep, 5, int(
-                    words[4])-1] = float(words[7])-feature[numStep, 2, int(words[4])-1]
+                    words[5])-1] = float(words[8])-feature[numStep, 2, int(words[5])-1]
             elif(line.startswith("ENDMDL") and flag):
                 flag = False
             elif(line.startswith("ENDMDL") and nflag):
                 nflag = False
     f.close()
     return feature
-
-# timestep_size=50
-# feature_size = 6 loc + vel
-#residue_size = 20
-#interval = 1000
-#window_choose = 1
 
 
 def read_feature_MD_file_slidingwindow(filename, timestep_size, feature_size, residue_size, interval, window_choose, aa_start, aa_end):
@@ -157,18 +114,12 @@ def read_feature_MD_file_slidingwindow(filename, timestep_size, feature_size, re
                     flag = True
                 if (modelNum % interval == (window_choose+1)):
                     nflag = True
-            elif(line.startswith("ATOM") and words[2] == "CA" and int(words[1]) >= aa_start and int(words[1]) <= aa_end and flag):
-                # print(line)
+            elif(line.startswith("ATOM") and words[2] == "CA" and int(words[4]) >= aa_start and int(words[4]) <= aa_end and flag):
                 numStep = int(modelNum/interval)
-                # print(line)
-                # # print(words[1]+"\t"+words[5])
-                # print(modelNum)
-                # print(str(modelNum)+"\t"+str(numStep))
-                # print(str(numStep)+"\t"+words[4]+"\t"+words[5])
                 feature[numStep, 0, int(words[4])-aa_start] = float(words[5])
                 feature[numStep, 1, int(words[4])-aa_start] = float(words[6])
                 feature[numStep, 2, int(words[4])-aa_start] = float(words[7])
-            elif(line.startswith("ATOM") and words[2] == "CA" and int(words[1]) >= aa_start and int(words[1]) <= aa_end and nflag):
+            elif(line.startswith("ATOM") and words[2] == "CA" and int(words[4]) >= aa_start and int(words[4]) <= aa_end and nflag):
                 numStep = int(modelNum/interval)
                 feature[numStep, 3, int(
                     words[4])-aa_start] = float(words[5])-feature[numStep, 0, int(words[4])-aa_start]
@@ -183,11 +134,6 @@ def read_feature_MD_file_slidingwindow(filename, timestep_size, feature_size, re
     f.close()
     print(feature.shape)
     return feature
-
-# timestep_size=50
-# feature_size = 6 loc + vel
-#residue_size = 20
-#interval = 1000
 
 
 def read_feature_MD_file_resi(filename, resDict, feature_size, residue_size, timestep_size, interval):
@@ -209,11 +155,7 @@ def read_feature_MD_file_resi(filename, resDict, feature_size, residue_size, tim
                 if (modelNum % interval == 2):
                     nflag = True
             elif(line.startswith("ATOM") and words[2] == "CA" and flag):
-                # print(line)
                 numStep = int(modelNum/interval)
-                # print(line)
-                # # print(words[1]+"\t"+words[5])
-                # print(modelNum)
                 feature[numStep, 0, int(words[4])-1] = float(words[5])
                 feature[numStep, 1, int(words[4])-1] = float(words[6])
                 feature[numStep, 2, int(words[4])-1] = float(words[7])
@@ -337,41 +279,24 @@ def convert_dataset_md(feature_filename, startIndex, experiment_size, timestep_s
 
     return features, edges
 
-#features: loc + vel
-# use sliding window to add
 
-
-def convert_dataset_md_single(MDfolder, MDfilename, timestep_size, feature_size, residue_size, interval, window_start, window_end, aa_start, aa_end):
+def convert_dataset_md_single(MDfolder, startIndex, experiment_size, timestep_size, feature_size, residue_size, interval, window_start, window_end, aa_start, aa_end):
+    """
+    Convert in single md file in single skeleton
+    """
     features = list()
     edges = list()
 
-    for i in range(window_start, window_end+1):
-        features.append(read_feature_MD_file_slidingwindow(MDfolder+MDfilename,
-                                                           timestep_size, feature_size, residue_size, interval, i, aa_start, aa_end))
-        edges.append(np.zeros((residue_size, residue_size)))
+    for i in range(startIndex, experiment_size+1):
+        print("Start: "+str(i)+"th PDB")
+        for j in range(window_start, window_end+1):
+            print(str(i)+" "+str(j))
+            features.append(read_feature_MD_file_slidingwindow(MDfolder+"ca_"+str(
+                i)+".pdb", timestep_size, feature_size, residue_size, interval, j, aa_start, aa_end))
+            edges.append(np.zeros((residue_size, residue_size)))
     print("***")
     print(len(features))
     print("###")
-    features = np.stack(features, axis=0)
-    edges = np.stack(edges, axis=0)
-
-    return features, edges
-
-#features: loc + vel + more
-
-
-def convert_dataset_md_more(feature_filename, AAfeature_filename, experiment_size=1, timestep_size=50, feature_size=10, residue_size=20, interval=1000):
-    features = list()
-    edges = list()
-
-    resDict = read_feature_Residue_file(AAfeature_filename)
-
-    for i in range(1, experiment_size+1):
-        print("Start: "+str(i)+"th PDB")
-        features.append(read_feature_MD_file_resi(feature_filename+"smd"+str(i)+".pdb",
-                                                  resDict, timestep_size=50, feature_size=10, residue_size=20, interval=1000))
-        edges.append(np.zeros((residue_size, residue_size)))
-
     features = np.stack(features, axis=0)
     edges = np.stack(edges, axis=0)
 
@@ -395,24 +320,30 @@ def timepoint_sim(feature, fold):
     return feature_out
 
 
-MDfolder = "./data/pdb/"
-MDfilename = 'toy.pdb'
+MDfolder = args.MDfolder
+feature_size = args.feature_size
+residue_size = args.residue_size
 
-features, edges = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=50,
-                                            feature_size=6, residue_size=77, interval=100, window_start=0, window_end=1, aa_start=11, aa_end=93)
 
-np.save('features.npy', features)
-np.save('edges.npy', edges)
+# Generate training/validating/testing
+print("Generate Train")
+features, edges = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
+                                            feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=77)
 
-features_val, edges_val = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=50,
-                                                    feature_size=6, residue_size=77, interval=30, window_start=0, window_end=1, aa_start=11, aa_end=93)
+np.save('data/features.npy', features)
+np.save('data/edges.npy', edges)
 
-np.save('features_val.npy', features_val)
-np.save('edges_val.npy', edges_val)
+
+print("Generate Valid")
+features_valid, edges_valid = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
+                                                        feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=77)
+
+np.save('data/features_valid.npy', features_valid)
+np.save('data/edges_valid.npy', edges_valid)
+
 
 print("Generate Test")
-features_test, edges_test = convert_dataset_md_single(MDfolder, MDfilename, timestep_size=100,
-                                                      feature_size=6, residue_size=77, interval=33, window_start=0, window_end=1, aa_start=11, aa_end=93)
-
-np.save('features_test.npy', features_test)
-np.save('edges_test.npy', edges_test)
+features_test, edges_test = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
+                                                      feature_size=feature_size, residue_size=residue_size, interval=100, window_start=1, window_end=56, aa_start=1, aa_end=77)
+np.save('data/features_test.npy', features_test)
+np.save('data/edges_test.npy', edges_test)

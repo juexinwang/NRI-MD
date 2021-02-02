@@ -52,7 +52,8 @@ class CNN(nn.Module):
 
         self.conv1 = nn.Conv1d(n_in, n_hid, kernel_size=5, stride=1, padding=0)
         self.bn1 = nn.BatchNorm1d(n_hid)
-        self.conv2 = nn.Conv1d(n_hid, n_hid, kernel_size=5, stride=1, padding=0)
+        self.conv2 = nn.Conv1d(
+            n_hid, n_hid, kernel_size=5, stride=1, padding=0)
         self.bn2 = nn.BatchNorm1d(n_hid)
         self.conv_predict = nn.Conv1d(n_hid, n_out, kernel_size=1)
         self.conv_attention = nn.Conv1d(n_hid, 1, kernel_size=1)
@@ -323,8 +324,10 @@ class SimulationDecoder(nn.Module):
         # Broadcasting/shape tricks for parallel processing of time steps
         loc = loc.permute(0, 2, 1, 3).contiguous()
         vel = vel.permute(0, 2, 1, 3).contiguous()
-        loc = loc.view(inputs.size(0) * (inputs.size(2) - 1), inputs.size(1), 2)
-        vel = vel.view(inputs.size(0) * (inputs.size(2) - 1), inputs.size(1), 2)
+        loc = loc.view(inputs.size(0) * (inputs.size(2) - 1),
+                       inputs.size(1), 2)
+        vel = vel.view(inputs.size(0) * (inputs.size(2) - 1),
+                       inputs.size(1), 2)
 
         loc, vel = self.unnormalize(loc, vel)
 
@@ -361,7 +364,7 @@ class SimulationDecoder(nn.Module):
                 pair_dist = pair_dist.view(inputs.size(0), (inputs.size(2) - 1),
                                            inputs.size(1), inputs.size(1), 2)
                 forces = (
-                        forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
+                    forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
                     3)
             else:  # charged particle sim
                 e = (-1) * (edges * 2 - 1)
@@ -374,7 +377,8 @@ class SimulationDecoder(nn.Module):
                                                      (inputs.size(2) - 1),
                                                      inputs.size(1),
                                                      inputs.size(1))
-                forces_size = forces_size.unsqueeze(1) / (l2_dist_power3 + _EPS)
+                forces_size = forces_size.unsqueeze(
+                    1) / (l2_dist_power3 + _EPS)
 
                 pair_dist = torch.cat(
                     (dist_x.unsqueeze(-1), dist_y.unsqueeze(-1)),

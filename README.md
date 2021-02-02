@@ -14,10 +14,10 @@ https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
 
 ### Prepare Molecular Simulation Trajectories
 
-Place your molecular simulation trajectories in data/pdb folder. We have toy.pdb for the tutorial usage.
+Place your molecular simulation trajectories in data/pdb folder. We have ca_1.pdb for the tutorial usage.
 
 ```
-python generate_dataset.py
+python convert_dataset.py
 ```
 
 This step will seperate train/validation/test dataset, and generate .npy files in data folder.
@@ -29,10 +29,6 @@ From the project's root folder, simply run
 python main.py
 ```
 
-Additionally, we provide code for an LSTM baseline (denoted *LSTM (joint)* in the paper), which you can run as follows:
-```
-python lstm_baseline.py
-```
 
 ### Cite
 If you make use of this code in your own work, please cite our paper:
