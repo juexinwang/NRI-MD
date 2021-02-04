@@ -24,7 +24,7 @@ class MLP(nn.Module):
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
             elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
@@ -108,7 +108,7 @@ class MLPEncoder(nn.Module):
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
 
     def edge2node(self, x, rel_rec, rel_send):
@@ -171,7 +171,7 @@ class CNNEncoder(nn.Module):
     def init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.fill_(0.1)
 
     def node2edge_temporal(self, inputs, rel_rec, rel_send):
