@@ -94,7 +94,8 @@ if args.save_folder:
     save_folder = args.save_folder+'/' + \
         str(args.number_expstart)+'_' + \
         str(args.number_exp)+'_'+str(args.epochs)+'/'
-    os.mkdir(save_folder)
+    if not os.path.isdir(save_folder):
+        os.mkdir(save_folder)
     meta_file = os.path.join(save_folder, 'metadata.pkl')
     encoder_file = os.path.join(save_folder, 'encoder.pt')
     decoder_file = os.path.join(save_folder, 'decoder.pt')
@@ -277,34 +278,34 @@ def train(epoch, best_val_loss):
         kl_val.append(loss_kl.data)
 
     print('Epoch: {:04d}'.format(epoch),
-          'nll_train: {:.10f}'.format(np.mean(nll_train)),
-          'kl_train: {:.10f}'.format(np.mean(kl_train)),
-          'mse_train: {:.10f}'.format(np.mean(mse_train)),
-          'acc_train: {:.10f}'.format(np.mean(acc_train)),
-          'nll_val: {:.10f}'.format(np.mean(nll_val)),
-          'kl_val: {:.10f}'.format(np.mean(kl_val)),
-          'mse_val: {:.10f}'.format(np.mean(mse_val)),
-          'acc_val: {:.10f}'.format(np.mean(acc_val)),
+          'nll_train: {:.10f}'.format(np.mean(np.array(nll_train))),
+          'kl_train: {:.10f}'.format(np.mean(np.array(kl_train))),
+          'mse_train: {:.10f}'.format(np.mean(np.array(mse_train))),
+          'acc_train: {:.10f}'.format(np.mean(np.array(acc_train))),
+          'nll_val: {:.10f}'.format(np.mean(np.array(nll_val))),
+          'kl_val: {:.10f}'.format(np.mean(np.array(kl_val))),
+          'mse_val: {:.10f}'.format(np.mean(np.array(mse_val))),
+          'acc_val: {:.10f}'.format(np.mean(np.array(acc_val))),
           'time: {:.4f}s'.format(time.time() - t))
     edges_train = np.concatenate(edges_train)
     probs_train = np.concatenate(probs_train)
-    if args.save_folder and np.mean(nll_val) < best_val_loss:
+    if args.save_folder and np.mean(np.array(nll_val)) < best_val_loss:
         torch.save(encoder.state_dict(), encoder_file)
         torch.save(decoder.state_dict(), decoder_file)
         print('Best model so far, saving...')
         print('Epoch: {:04d}'.format(epoch),
-              'nll_train: {:.10f}'.format(np.mean(nll_train)),
-              'kl_train: {:.10f}'.format(np.mean(kl_train)),
-              'mse_train: {:.10f}'.format(np.mean(mse_train)),
-              'acc_train: {:.10f}'.format(np.mean(acc_train)),
-              'nll_val: {:.10f}'.format(np.mean(nll_val)),
-              'kl_val: {:.10f}'.format(np.mean(kl_val)),
-              'mse_val: {:.10f}'.format(np.mean(mse_val)),
-              'acc_val: {:.10f}'.format(np.mean(acc_val)),
+              'nll_train: {:.10f}'.format(np.mean(np.array(nll_train))),
+              'kl_train: {:.10f}'.format(np.mean(np.array(kl_train))),
+              'mse_train: {:.10f}'.format(np.mean(np.array(mse_train))),
+              'acc_train: {:.10f}'.format(np.mean(np.array(acc_train))),
+              'nll_val: {:.10f}'.format(np.mean(np.array(nll_val))),
+              'kl_val: {:.10f}'.format(np.mean(np.array(kl_val))),
+              'mse_val: {:.10f}'.format(np.mean(np.array(mse_val))),
+              'acc_val: {:.10f}'.format(np.mean(np.array(acc_val))),
               'time: {:.4f}s'.format(time.time() - t), file=log)
         log.flush()
 
-    return encoder, decoder, edges_train, probs_train, np.mean(nll_val)
+    return encoder, decoder, edges_train, probs_train, np.mean(np.array(nll_val))
 
 
 def test():
