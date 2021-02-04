@@ -25,8 +25,8 @@ parser.add_argument('--decoder-hidden', type=int, default=256,
                     help='Number of hidden units in decoder.')
 parser.add_argument('--temp', type=float, default=0.5,
                     help='Temperature for Gumbel softmax.')
-parser.add_argument('--num-atoms', type=int, default=77,
-                    help='Number of atoms in simulation.')
+parser.add_argument('--num-residues', type=int, default=77,
+                    help='Number of residues in simulation.')
 parser.add_argument('--encoder', type=str, default='mlp',
                     help='Type of path encoder model (mlp or cnn).')
 parser.add_argument('--decoder', type=str, default='rnn',
@@ -114,7 +114,8 @@ train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = lo
 
 
 # Generate off-diagonal interaction graph
-off_diag = np.ones([args.num_atoms, args.num_atoms]) - np.eye(args.num_atoms)
+off_diag = np.ones([args.num_residues, args.num_residues]
+                   ) - np.eye(args.num_residues)
 
 rel_rec = np.array(encode_onehot(np.where(off_diag)[1]), dtype=np.float32)
 rel_send = np.array(encode_onehot(np.where(off_diag)[0]), dtype=np.float32)
@@ -162,8 +163,8 @@ scheduler = lr_scheduler.StepLR(optimizer, step_size=args.lr_decay,
                                 gamma=args.gamma)
 
 # Linear indices of an upper triangular mx, used for acc calculation
-triu_indices = get_triu_offdiag_indices(args.num_atoms)
-tril_indices = get_tril_offdiag_indices(args.num_atoms)
+triu_indices = get_triu_offdiag_indices(args.num_residues)
+tril_indices = get_tril_offdiag_indices(args.num_residues)
 
 if args.prior:
     prior = np.array([0.91, 0.03, 0.03, 0.03])  # TODO: hard coded for now
@@ -226,9 +227,9 @@ def train(epoch, best_val_loss):
         loss_nll = nll_gaussian(output, target, args.var)
 
         if args.prior:
-            loss_kl = kl_categorical(prob, log_prior, args.num_atoms)
+            loss_kl = kl_categorical(prob, log_prior, args.num_residues)
         else:
-            loss_kl = kl_categorical_uniform(prob, args.num_atoms,
+            loss_kl = kl_categorical_uniform(prob, args.num_residues,
                                              args.edge_types)
 
         loss = loss_nll + loss_kl
@@ -256,19 +257,19 @@ def train(epoch, best_val_loss):
     for batch_idx, (data, relations) in enumerate(valid_loader):
         if args.cuda:
             data, relations = data.cuda(), relations.cuda()
-        data, relations = Variable(data, volatile=True), Variable(
-            relations, volatile=True)
+        with torch.no_grad():
 
-        logits = encoder(data, rel_rec, rel_send)
-        edges = gumbel_softmax(logits, tau=args.temp, hard=True)
-        prob = my_softmax(logits, -1)
+            logits = encoder(data, rel_rec, rel_send)
+            edges = gumbel_softmax(logits, tau=args.temp, hard=True)
+            prob = my_softmax(logits, -1)
 
-        # validation output uses teacher forcing
-        output = decoder(data, edges, rel_rec, rel_send, 1)
+            # validation output uses teacher forcing
+            output = decoder(data, edges, rel_rec, rel_send, 1)
 
-        target = data[:, :, 1:, :]
-        loss_nll = nll_gaussian(output, target, args.var)
-        loss_kl = kl_categorical_uniform(prob, args.num_atoms, args.edge_types)
+            target = data[:, :, 1:, :]
+            loss_nll = nll_gaussian(output, target, args.var)
+            loss_kl = kl_categorical_uniform(
+                prob, args.num_residues, args.edge_types)
 
         acc = edge_accuracy(logits, relations)
         acc_val.append(acc)
@@ -344,7 +345,8 @@ def test():
 
         target = data_decoder[:, :, 1:, :]
         loss_nll = nll_gaussian(output, target, args.var)
-        loss_kl = kl_categorical_uniform(prob, args.num_atoms, args.edge_types)
+        loss_kl = kl_categorical_uniform(
+            prob, args.num_residues, args.edge_types)
 
         acc = edge_accuracy(logits, relations)
         acc_test.append(acc)

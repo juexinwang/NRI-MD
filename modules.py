@@ -577,9 +577,9 @@ class RNNDecoder(nn.Module):
         # Run separate MLP for every edge type
         # NOTE: To exlude one edge type, simply offset range by 1
         for i in range(start_idx, len(self.msg_fc2)):
-            msg = F.tanh(self.msg_fc1[i](pre_msg))
+            msg = torch.tanh(self.msg_fc1[i](pre_msg))
             msg = F.dropout(msg, p=self.dropout_prob)
-            msg = F.tanh(self.msg_fc2[i](msg))
+            msg = torch.tanh(self.msg_fc2[i](msg))
             msg = msg * rel_type[:, :, i:i + 1]
             all_msgs += msg / norm
 
@@ -588,9 +588,9 @@ class RNNDecoder(nn.Module):
         agg_msgs = agg_msgs.contiguous() / inputs.size(2)  # Average
 
         # GRU-style gated aggregation
-        r = F.sigmoid(self.input_r(inputs) + self.hidden_r(agg_msgs))
-        i = F.sigmoid(self.input_i(inputs) + self.hidden_i(agg_msgs))
-        n = F.tanh(self.input_n(inputs) + r * self.hidden_h(agg_msgs))
+        r = torch.sigmoid(self.input_r(inputs) + self.hidden_r(agg_msgs))
+        i = torch.sigmoid(self.input_i(inputs) + self.hidden_i(agg_msgs))
+        n = torch.tanh(self.input_n(inputs) + r * self.hidden_h(agg_msgs))
         hidden = (1 - i) * n + i * hidden
 
         # Output MLP
