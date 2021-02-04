@@ -278,7 +278,7 @@ def train(epoch, best_val_loss):
         kl_val.append(loss_kl.data)
 
     print('Epoch: {:04d}'.format(epoch),
-          'nll_train: {:.10f}'.format(np.mean(np.array(nll_train))),
+          'nll_train: {:.10f}'.format(np.mean(np.array(nll_train.nump()))),
           'kl_train: {:.10f}'.format(np.mean(np.array(kl_train))),
           'mse_train: {:.10f}'.format(np.mean(np.array(mse_train))),
           'acc_train: {:.10f}'.format(np.mean(np.array(acc_train))),
