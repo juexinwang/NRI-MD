@@ -3,6 +3,7 @@ import argparse
 import pickle
 import os
 import datetime
+import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from utils import *
@@ -10,6 +11,21 @@ from modules import *
 
 parser = argparse.ArgumentParser(
     'Neral relational inference for molecular dynamics simulations')
+parser.add_argument('--num-residues', type=int, default=77,
+                    help='Number of residues of the PDB.')
+parser.add_argument('--save-folder', type=str, default='logs',
+                    help='Where to save the trained model, leave empty to not save anything.')
+parser.add_argument('--load-folder', type=str, default='',
+                    help='Where to load the trained model if finetunning. ' +
+                         'Leave empty to train from scratch')
+parser.add_argument('--edge-types', type=int, default=4,
+                    help='The number of edge types to infer.')
+parser.add_argument('--dims', type=int, default=6,
+                    help='The number of input dimensions used in study( position (X,Y,Z) + velocity (X,Y,Z) ). ')
+parser.add_argument('--timesteps', type=int, default=50,
+                    help='The number of time steps per sample. Actually is 50')
+parser.add_argument('--prediction-steps', type=int, default=1, metavar='N',
+                    help='Num steps to predict before re-using teacher forcing.')
 parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='Disables CUDA training.')
 parser.add_argument('--seed', type=int, default=42, help='Random seed.')
@@ -25,33 +41,16 @@ parser.add_argument('--decoder-hidden', type=int, default=256,
                     help='Number of hidden units in decoder.')
 parser.add_argument('--temp', type=float, default=0.5,
                     help='Temperature for Gumbel softmax.')
-parser.add_argument('--num-residues', type=int, default=77,
-                    help='Number of residues in simulation.')
 parser.add_argument('--encoder', type=str, default='mlp',
                     help='Type of path encoder model (mlp or cnn).')
 parser.add_argument('--decoder', type=str, default='rnn',
                     help='Type of decoder model (mlp, rnn, or sim).')
 parser.add_argument('--no-factor', action='store_true', default=False,
                     help='Disables factor graph model.')
-parser.add_argument('--suffix', type=str, default='_springs5',
-                    help='Suffix for training data (e.g. "_charged".')
 parser.add_argument('--encoder-dropout', type=float, default=0.0,
                     help='Dropout rate (1 - keep probability) in encoder.')
 parser.add_argument('--decoder-dropout', type=float, default=0.0,
                     help='Dropout rate (1 - keep probability) in decoder.')
-parser.add_argument('--save-folder', type=str, default='logs',
-                    help='Where to save the trained model, leave empty to not save anything.')
-parser.add_argument('--load-folder', type=str, default='',
-                    help='Where to load the trained model if finetunning. ' +
-                         'Leave empty to train from scratch')
-parser.add_argument('--edge-types', type=int, default=4,
-                    help='The number of edge types to infer.')
-parser.add_argument('--dims', type=int, default=6,
-                    help='The number of input dimensions used in study( position (X,Y,Z) + velocity (X,Y,Z) ). ')
-parser.add_argument('--timesteps', type=int, default=50,
-                    help='The number of time steps per sample. Actually is 50')
-parser.add_argument('--prediction-steps', type=int, default=1, metavar='N',
-                    help='Num steps to predict before re-using teacher forcing.')
 parser.add_argument('--lr-decay', type=int, default=200,
                     help='After how epochs to decay LR by a factor of gamma.')
 parser.add_argument('--gamma', type=float, default=0.5,
@@ -85,15 +84,12 @@ if args.cuda:
 if args.dynamic_graph:
     print("Testing with dynamically re-computed graph.")
 
-
 # Save model and meta-data. Always saves in a new sub-folder.
 if args.save_folder:
     exp_counter = 0
     now = datetime.datetime.now()
     timestamp = now.isoformat()
-    save_folder = args.save_folder+'/' + \
-        str(args.number_expstart)+'_' + \
-        str(args.number_exp)+'_'+str(args.epochs)+'/'
+    save_folder = args.save_folder+'/'
     if not os.path.isdir(save_folder):
         os.mkdir(save_folder)
     meta_file = os.path.join(save_folder, 'metadata.pkl')
@@ -110,7 +106,7 @@ else:
 
 # load data
 train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_dataset_train_valid_test(
-    args.batch_size, args.suffix, args.number_exp, args.number_expstart, args.dims)
+    args.batch_size, args.number_exp, args.number_expstart, args.dims)
 
 
 # Generate off-diagonal interaction graph
@@ -327,59 +323,58 @@ def test():
     for batch_idx, (data, relations) in enumerate(test_loader):
         if args.cuda:
             data, relations = data.cuda(), relations.cuda()
-        data, relations = Variable(data, volatile=True), Variable(
-            relations, volatile=True)
 
-#        assert (data.size(2) - args.timesteps) >= args.timesteps
-        assert (data.size(2)) >= args.timesteps
+        with torch.no_grad():
+            #        assert (data.size(2) - args.timesteps) >= args.timesteps
+            assert (data.size(2)) >= args.timesteps
 
-        data_encoder = data[:, :, :args.timesteps, :].contiguous()
-        data_decoder = data[:, :, -args.timesteps:, :].contiguous()
+            data_encoder = data[:, :, :args.timesteps, :].contiguous()
+            data_decoder = data[:, :, -args.timesteps:, :].contiguous()
 
-        logits = encoder(data_encoder, rel_rec, rel_send)
-        edges = gumbel_softmax(logits, tau=args.temp, hard=True)
+            logits = encoder(data_encoder, rel_rec, rel_send)
+            edges = gumbel_softmax(logits, tau=args.temp, hard=True)
 
-        prob = my_softmax(logits, -1)
+            prob = my_softmax(logits, -1)
 
-        output = decoder(data_decoder, edges, rel_rec, rel_send, 1)
+            output = decoder(data_decoder, edges, rel_rec, rel_send, 1)
 
-        target = data_decoder[:, :, 1:, :]
-        loss_nll = nll_gaussian(output, target, args.var)
-        loss_kl = kl_categorical_uniform(
-            prob, args.num_residues, args.edge_types)
+            target = data_decoder[:, :, 1:, :]
+            loss_nll = nll_gaussian(output, target, args.var)
+            loss_kl = kl_categorical_uniform(
+                prob, args.num_residues, args.edge_types)
 
-        acc = edge_accuracy(logits, relations)
-        acc_test.append(acc)
+            acc = edge_accuracy(logits, relations)
+            acc_test.append(acc)
 
-        mse_test.append(F.mse_loss(output, target).item())
-        nll_test.append(loss_nll.item())
-        kl_test.append(loss_kl.item())
-        _, edges_t = edges.max(-1)
-        edges_test.append(edges_t.data.cpu().numpy())
-        probs_test.append(prob.data.cpu().numpy())
+            mse_test.append(F.mse_loss(output, target).item())
+            nll_test.append(loss_nll.item())
+            kl_test.append(loss_kl.item())
+            _, edges_t = edges.max(-1)
+            edges_test.append(edges_t.data.cpu().numpy())
+            probs_test.append(prob.data.cpu().numpy())
 
-        # For plotting purposes
-        if args.decoder == 'rnn':
-            if args.dynamic_graph:
-                output = decoder(data, edges, rel_rec, rel_send, 50,
-                                 burn_in=False, burn_in_steps=args.timesteps,
-                                 dynamic_graph=True, encoder=encoder,
-                                 temp=args.temp)
+            # For plotting purposes
+            if args.decoder == 'rnn':
+                if args.dynamic_graph:
+                    output = decoder(data, edges, rel_rec, rel_send, 50,
+                                     burn_in=False, burn_in_steps=args.timesteps,
+                                     dynamic_graph=True, encoder=encoder,
+                                     temp=args.temp)
+                else:
+                    output = decoder(data, edges, rel_rec, rel_send, 50,
+                                     burn_in=True, burn_in_steps=args.timesteps)
+
+                target = data[:, :, 1:, :]
+
             else:
-                output = decoder(data, edges, rel_rec, rel_send, 50,
-                                 burn_in=True, burn_in_steps=args.timesteps)
+                data_plot = data[:, :, 0:0 + 21,
+                                 :].contiguous()
+                output = decoder(data_plot, edges, rel_rec, rel_send, 20)
+                target = data_plot[:, :, 1:, :]
 
-            target = data[:, :, 1:, :]
-
-        else:
-            data_plot = data[:, :, 0:0 + 21,
-                             :].contiguous()
-            output = decoder(data_plot, edges, rel_rec, rel_send, 20)
-            target = data_plot[:, :, 1:, :]
-
-        mse = ((target - output) ** 2).mean(dim=0).mean(dim=0).mean(dim=-1)
-        tot_mse += mse.data.cpu().numpy()
-        counter += 1
+            mse = ((target - output) ** 2).mean(dim=0).mean(dim=0).mean(dim=-1)
+            tot_mse += mse.data.cpu().numpy()
+            counter += 1
 
     mean_mse = tot_mse / counter
     mse_str = '['
@@ -423,17 +418,15 @@ for epoch in range(args.epochs):
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         best_epoch = epoch
-np.save(str(args.number_expstart)+str(args.number_exp) +
-        '_'+str(args.epochs)+'edges_train.npy', edges_train)
-np.save(str(args.number_expstart)+str(args.number_exp) +
-        '_'+str(args.epochs)+'probs_train.npy', probs_train)
+np.save(str(args.save_folder)+'/out_edges_train.npy', edges_train)
+np.save(str(args.save_folder)+'/out_probs_train.npy', probs_train)
 print("Optimization Finished!")
 print("Best Epoch: {:04d}".format(best_epoch))
 if args.save_folder:
     print("Best Epoch: {:04d}".format(best_epoch), file=log)
     log.flush()
 
-# test()
+# Test
 edges_test, probs_test = test()
 if log is not None:
     print(save_folder)

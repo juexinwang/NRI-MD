@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 def my_softmax(input, axis=1):
     trans_input = input.transpose(axis, 0).contiguous()
-    soft_max_1d = F.softmax(trans_input)
+    soft_max_1d = F.softmax(trans_input, dim=0)
     return soft_max_1d.transpose(axis, 0)
 
 
@@ -154,7 +154,7 @@ def load_dataset_train(batch_size=1, suffix='', number_exp=1, dims=6):
     return train_data_loader, feat_max, feat_min
 
 
-def load_dataset_train_valid_test(batch_size=1, suffix='', number_exp=1, number_expstart=0, dims=6):
+def load_dataset_train_valid_test(batch_size=1, number_exp=1, number_expstart=0, dims=6):
     feat_train = np.load('data/features.npy')
     edges_train = np.load('data/edges.npy')
     feat_valid = np.load('data/features_valid.npy')
@@ -237,7 +237,7 @@ def load_dataset_train_valid_test(batch_size=1, suffix='', number_exp=1, number_
     return train_data_loader, valid_data_loader, test_data_loader, loc_max, loc_min, vel_max, vel_min
 
 
-def load_dataset_train_test(batch_size=1, suffix='', number_exp=1, number_expstart=0, dims=6):
+def load_dataset_train_test(batch_size=1, number_exp=1, number_expstart=0, dims=6):
     feat_train = np.load('data/features.npy')
     edges_train = np.load('data/edges.npy')
     feat_test = np.load('data/features_test.npy')
@@ -418,92 +418,6 @@ def load_kuramoto_data(batch_size=1, suffix=''):
     off_diag_idx = np.ravel_multi_index(
         np.where(np.ones((num_atoms, num_atoms)) - np.eye(num_atoms)),
         [num_atoms, num_atoms])
-    edges_train = edges_train[:, off_diag_idx]
-    edges_valid = edges_valid[:, off_diag_idx]
-    edges_test = edges_test[:, off_diag_idx]
-
-    train_data = TensorDataset(feat_train, edges_train)
-    valid_data = TensorDataset(feat_valid, edges_valid)
-    test_data = TensorDataset(feat_test, edges_test)
-
-    train_data_loader = DataLoader(train_data, batch_size=batch_size)
-    valid_data_loader = DataLoader(valid_data, batch_size=batch_size)
-    test_data_loader = DataLoader(test_data, batch_size=batch_size)
-
-    return train_data_loader, valid_data_loader, test_data_loader
-
-
-def load_kuramoto_data_old(batch_size=1, suffix=''):
-    feat_train = np.load('data/old_kuramoto/feat_train' + suffix + '.npy')
-    edges_train = np.load('data/old_kuramoto/edges_train' + suffix + '.npy')
-    feat_valid = np.load('data/old_kuramoto/feat_valid' + suffix + '.npy')
-    edges_valid = np.load('data/old_kuramoto/edges_valid' + suffix + '.npy')
-    feat_test = np.load('data/old_kuramoto/feat_test' + suffix + '.npy')
-    edges_test = np.load('data/old_kuramoto/edges_test' + suffix + '.npy')
-
-    # [num_sims, num_atoms, num_timesteps, num_dims]
-    num_atoms = feat_train.shape[1]
-
-    # Reshape to: [num_sims, num_atoms, num_timesteps, num_dims]
-    edges_train = np.reshape(edges_train, [-1, num_atoms ** 2])
-    edges_valid = np.reshape(edges_valid, [-1, num_atoms ** 2])
-    edges_test = np.reshape(edges_test, [-1, num_atoms ** 2])
-
-    feat_train = torch.FloatTensor(feat_train)
-    edges_train = torch.LongTensor(edges_train)
-    feat_valid = torch.FloatTensor(feat_valid)
-    edges_valid = torch.LongTensor(edges_valid)
-    feat_test = torch.FloatTensor(feat_test)
-    edges_test = torch.LongTensor(edges_test)
-
-    # Exclude self edges
-    off_diag_idx = np.ravel_multi_index(
-        np.where(np.ones((num_atoms, num_atoms)) - np.eye(num_atoms)),
-        [num_atoms, num_atoms])
-    edges_train = edges_train[:, off_diag_idx]
-    edges_valid = edges_valid[:, off_diag_idx]
-    edges_test = edges_test[:, off_diag_idx]
-
-    train_data = TensorDataset(feat_train, edges_train)
-    valid_data = TensorDataset(feat_valid, edges_valid)
-    test_data = TensorDataset(feat_test, edges_test)
-
-    train_data_loader = DataLoader(train_data, batch_size=batch_size)
-    valid_data_loader = DataLoader(valid_data, batch_size=batch_size)
-    test_data_loader = DataLoader(test_data, batch_size=batch_size)
-
-    return train_data_loader, valid_data_loader, test_data_loader
-
-
-def load_motion_data(batch_size=1, suffix=''):
-    feat_train = np.load('data/motion_train' + suffix + '.npy')
-    feat_valid = np.load('data/motion_valid' + suffix + '.npy')
-    feat_test = np.load('data/motion_test' + suffix + '.npy')
-    adj = np.load('data/motion_adj' + suffix + '.npy')
-
-    # NOTE: Already normalized
-
-    # [num_samples, num_nodes, num_timesteps, num_dims]
-    num_nodes = feat_train.shape[1]
-
-    edges_train = np.repeat(np.expand_dims(adj.flatten(), 0),
-                            feat_train.shape[0], axis=0)
-    edges_valid = np.repeat(np.expand_dims(adj.flatten(), 0),
-                            feat_valid.shape[0], axis=0)
-    edges_test = np.repeat(np.expand_dims(adj.flatten(), 0),
-                           feat_test.shape[0], axis=0)
-
-    feat_train = torch.FloatTensor(feat_train)
-    edges_train = torch.LongTensor(np.array(edges_train, dtype=np.int64))
-    feat_valid = torch.FloatTensor(feat_valid)
-    edges_valid = torch.LongTensor(np.array(edges_valid, dtype=np.int64))
-    feat_test = torch.FloatTensor(feat_test)
-    edges_test = torch.LongTensor(np.array(edges_test, dtype=np.int64))
-
-    # Exclude self edges
-    off_diag_idx = np.ravel_multi_index(
-        np.where(np.ones((num_nodes, num_nodes)) - np.eye(num_nodes)),
-        [num_nodes, num_nodes])
     edges_train = edges_train[:, off_diag_idx]
     edges_valid = edges_valid[:, off_diag_idx]
     edges_test = edges_test[:, off_diag_idx]

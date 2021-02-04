@@ -7,6 +7,10 @@ from scipy import interpolate
 parser = argparse.ArgumentParser('Generate features from pdb')
 parser.add_argument('--MDfolder', type=str, default="data/pdb/",
                     help='folder of pdb MD')
+parser.add_argument('--window-start', type=str, default="1",
+                    help='select window from start')
+parser.add_argument('--window-end', type=str, default="56",
+                    help='select window to start')
 parser.add_argument('--num-residues', type=int, default=77,
                     help='Number of residues of the MD pdb')
 parser.add_argument('--feature-size', type=int, default=6,
@@ -323,12 +327,13 @@ def timepoint_sim(feature, fold):
 MDfolder = args.MDfolder
 feature_size = args.feature_size
 num_residues = args.num_residues
-
+pdb_start = args.pdb_start
+pdb_end = args.pdb_end
 
 # Generate training/validating/testing
 print("Generate Train")
 features, edges = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                            feature_size=feature_size, num_residues=num_residues, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=num_residues)
+                                            feature_size=feature_size, num_residues=num_residues, interval=60, window_start=window_start, window_end=window_end, aa_start=1, aa_end=num_residues)
 
 np.save('data/features.npy', features)
 np.save('data/edges.npy', edges)
@@ -336,7 +341,7 @@ np.save('data/edges.npy', edges)
 
 print("Generate Valid")
 features_valid, edges_valid = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                        feature_size=feature_size, num_residues=num_residues, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=num_residues)
+                                                        feature_size=feature_size, num_residues=num_residues, interval=60, window_start=window_start, window_end=window_end, aa_start=1, aa_end=num_residues)
 
 np.save('data/features_valid.npy', features_valid)
 np.save('data/edges_valid.npy', edges_valid)
@@ -344,6 +349,6 @@ np.save('data/edges_valid.npy', edges_valid)
 
 print("Generate Test")
 features_test, edges_test = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                      feature_size=feature_size, num_residues=num_residues, interval=100, window_start=1, window_end=56, aa_start=1, aa_end=num_residues)
+                                                      feature_size=feature_size, num_residues=num_residues, interval=100, window_start=window_start, window_end=window_end, aa_start=1, aa_end=num_residues)
 np.save('data/features_test.npy', features_test)
 np.save('data/edges_test.npy', edges_test)
