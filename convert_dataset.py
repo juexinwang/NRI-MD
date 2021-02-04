@@ -328,7 +328,7 @@ residue_size = args.residue_size
 # Generate training/validating/testing
 print("Generate Train")
 features, edges = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                            feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=77)
+                                            feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=residue_size)
 
 np.save('data/features.npy', features)
 np.save('data/edges.npy', edges)
@@ -336,7 +336,7 @@ np.save('data/edges.npy', edges)
 
 print("Generate Valid")
 features_valid, edges_valid = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                        feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=77)
+                                                        feature_size=feature_size, residue_size=residue_size, interval=60, window_start=1, window_end=56, aa_start=1, aa_end=residue_size)
 
 np.save('data/features_valid.npy', features_valid)
 np.save('data/edges_valid.npy', edges_valid)
@@ -344,6 +344,6 @@ np.save('data/edges_valid.npy', edges_valid)
 
 print("Generate Test")
 features_test, edges_test = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                      feature_size=feature_size, residue_size=residue_size, interval=100, window_start=1, window_end=56, aa_start=1, aa_end=77)
+                                                      feature_size=feature_size, residue_size=residue_size, interval=100, window_start=1, window_end=56, aa_start=1, aa_end=residue_size)
 np.save('data/features_test.npy', features_test)
 np.save('data/edges_test.npy', edges_test)
