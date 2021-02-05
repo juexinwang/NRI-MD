@@ -11,6 +11,7 @@ https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
 ### Requirements
 * Pytorch 1.2
 * Python 3.7
+* networkx 2.5 (Optional, only used in post analysis)
 
 ### Prepare Molecular Simulation Trajectories
 
@@ -28,7 +29,16 @@ From the project's root folder, simply run
 ```
 python main.py
 ```
+### Post Analysis
+Visualize the inferred the interaction between residues and domains
+```
+python postanalysis_visual.py
+```
 
+Find the shortest path between residues
+```
+python postanalysis_path.py
+```
 
 ### Cite
 If you make use of this code in your own work, please cite our paper:
