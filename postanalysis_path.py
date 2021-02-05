@@ -18,7 +18,7 @@ parser.add_argument('--filename', type=str, default='logs/out_probs_train.npy',
                     help='File name of the probs file.')
 parser.add_argument('--source-node', type=int, default=46,
                     help='source residue of the PDB')
-parser.add_argument('--outputfilename', type=str, default='source46.txt',
+parser.add_argument('--outputfilename', type=str, default='logs/source46.txt',
                     help='File of shortest path from source to targets')
 args = parser.parse_args()
 
