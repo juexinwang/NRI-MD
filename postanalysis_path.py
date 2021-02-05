@@ -101,7 +101,7 @@ np.save('logs/dists_mean_12.npy', dists_mean)
 filtered_edges = np.where(dists_mean > args.dist_threshold, 1, edges_results)
 np.save('logs/filtered_edges_12.npy', filtered_edges)
 
-edges = np.load('filtered_edges_12.npy')
+edges = np.load('logs/filtered_edges_12.npy')
 # The network is directed
 edges_list = list()
 # Default: i->j

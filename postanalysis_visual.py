@@ -139,6 +139,7 @@ ax = sns.heatmap(edges_results_visual, linewidth=0.5,
                  cmap="Blues", vmax=1.0, vmin=0.0)
 plt.savefig('logs/probs.png', dpi=600)
 # plt.show()
+plt.close()
 
 # Step 2: Get domain specific results
 # According to the distribution of learned edges between residues, we integrated adjacent residues as blocks for a more straightforward observation of the interactions.
@@ -165,3 +166,4 @@ ax = sns.heatmap(edges_results_T, linewidth=1,
 ax.set_ylim([7, 0])
 plt.savefig('logs/edges_domain.png', dpi=600)
 # plt.show()
+plt.close()
