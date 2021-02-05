@@ -26,7 +26,7 @@ args = parser.parse_args()
 # According to the distribution of learned edges between residues, we calculated the shortest path
 # from mutation site to the residues in the active loop.
 
-def getEdgeResults():
+def getEdgeResults(threshold=False):
     a = np.load(args.filename)
     b = a[:, :, 1]
     c = a[:, :, 2]
@@ -34,16 +34,21 @@ def getEdgeResults():
 
     # There are four types of edges, eliminate the first type as the non-edge
     probs = b+c+d
-    # For default residue number 77, windowsizeR2 = 77*(77-1)=5852
-    windowsizeR2 = args.windowsize*(args.windowsize-1)
-    probs = np.reshape(probs, (args.windowsize, windowsizeR2))
+    # For default residue number 77, residueR2 = 77*(77-1)=5852
+    residueR2 = args.num_residues*(args.num_residues-1)
+    probs = np.reshape(probs, (args.windowsize, residueR2))
 
     # Calculate the occurence of edges
     edges_train = probs/args.windowsize
 
-    results = np.zeros((windowsizeR2))
+    results = np.zeros((residueR2))
     for i in range(args.windowsize):
         results = results+edges_train[i, :]
+
+    if threshold:
+        # threshold, default 0.6
+        index = results < (args.threshold)
+        results[index] = 0
 
     # Calculate prob for figures
     edges_results = np.zeros((args.num_residues, args.num_residues))

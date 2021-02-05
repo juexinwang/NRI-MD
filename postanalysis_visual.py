@@ -28,14 +28,14 @@ def getEdgeResults(threshold=False):
 
     # There are four types of edges, eliminate the first type as the non-edge
     probs = b+c+d
-    # For default residue number 77, windowsizeR2 = 77*(77-1)=5852
-    windowsizeR2 = args.windowsize*(args.windowsize-1)
-    probs = np.reshape(probs, (args.windowsize, windowsizeR2))
+    # For default residue number 77, residueR2 = 77*(77-1)=5852
+    residueR2 = args.num_residues*(args.num_residues-1)
+    probs = np.reshape(probs, (args.windowsize, residueR2))
 
     # Calculate the occurence of edges
     edges_train = probs/args.windowsize
 
-    results = np.zeros((windowsizeR2))
+    results = np.zeros((residueR2))
     for i in range(args.windowsize):
         results = results+edges_train[i, :]
 
