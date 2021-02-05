@@ -155,7 +155,7 @@ el = getDomainEdges(edges_results, 'el')
 b3 = getDomainEdges(edges_results, 'b3')
 edges_results = np.vstack((b1, diml, disl, zl, b2, el, b3))
 # print(edges_results)
-edges_results_T = mat(edges_results).T
+edges_results_T = edges_results.T
 index = edges_results_T < (args.threshold)
 edges_results_T[index] = 0
 
