@@ -417,7 +417,7 @@ best_epoch = 0
 for epoch in range(args.epochs):
     encoder, decoder, edges_train, probs_train, val_loss = train(
         epoch, best_val_loss)
-    print('Epoch '+str(epoch)+' with val loss:'+str(val_loss))
+    # print('Epoch '+str(epoch)+' with val loss:'+str(val_loss))
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         best_epoch = epoch

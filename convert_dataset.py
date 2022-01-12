@@ -4,17 +4,23 @@ import argparse
 from copy import deepcopy
 from scipy import interpolate
 
-parser = argparse.ArgumentParser('Generate features from pdb')
+parser = argparse.ArgumentParser('Preprocessing: Generate training/validation/testing features from pdb')
 parser.add_argument('--MDfolder', type=str, default="data/pdb/",
                     help='folder of pdb MD')
 parser.add_argument('--pdb-start', type=int, default="1",
-                    help='select pdb window from start')
+                    help='select pdb file window from start, e.g. in tutorial it is ca_1.pdb')
 parser.add_argument('--pdb-end', type=int, default="56",
-                    help='select pdb window to end')
+                    help='select pdb file window to end')
 parser.add_argument('--num-residues', type=int, default=77,
                     help='Number of residues of the MD pdb')
 parser.add_argument('--feature-size', type=int, default=6,
                     help='The number of features used in study( position (X,Y,Z) + velocity (X,Y,Z) ).')
+parser.add_argument('--train-interval', type=int, default=60,
+                    help='intervals in trajectory in training')
+parser.add_argument('--validate-interval', type=int, default=60,
+                    help='intervals in trajectory in validate')
+parser.add_argument('--test-interval', type=int, default=100,
+                    help='intervals in trajectory in test')
 args = parser.parse_args()
 
 
@@ -329,11 +335,14 @@ feature_size = args.feature_size
 num_residues = args.num_residues
 pdb_start = args.pdb_start
 pdb_end = args.pdb_end
+train_interval = args.train_interval
+validate_interval = args.validate_interval
+test_interval = args.test_interval
 
 # Generate training/validating/testing
 print("Generate Train")
 features, edges = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                            feature_size=feature_size, num_residues=num_residues, interval=60, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
+                                            feature_size=feature_size, num_residues=num_residues, interval=train_interval, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
 
 np.save('data/features.npy', features)
 np.save('data/edges.npy', edges)
@@ -341,7 +350,7 @@ np.save('data/edges.npy', edges)
 
 print("Generate Valid")
 features_valid, edges_valid = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                        feature_size=feature_size, num_residues=num_residues, interval=60, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
+                                                        feature_size=feature_size, num_residues=num_residues, interval=validate_interval, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
 
 np.save('data/features_valid.npy', features_valid)
 np.save('data/edges_valid.npy', edges_valid)
@@ -349,6 +358,6 @@ np.save('data/edges_valid.npy', edges_valid)
 
 print("Generate Test")
 features_test, edges_test = convert_dataset_md_single(MDfolder, startIndex=1, experiment_size=1, timestep_size=50,
-                                                      feature_size=feature_size, num_residues=num_residues, interval=100, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
+                                                      feature_size=feature_size, num_residues=num_residues, interval=test_interval, pdb_start=pdb_start, pdb_end=pdb_end, aa_start=1, aa_end=num_residues)
 np.save('data/features_test.npy', features_test)
 np.save('data/edges_test.npy', edges_test)
