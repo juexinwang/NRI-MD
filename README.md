@@ -43,6 +43,10 @@ Find the shortest path between residues
 python postanalysis_path.py
 ```
 
+### Data availability
+All the MD trajectories used in study can be downloaded from https://doi.org/10.5281/zenodo.5941385
+
+
 ### Cite
 If you make use of this code in your own work, please cite our paper:
 ```
