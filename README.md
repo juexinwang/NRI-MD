@@ -6,10 +6,8 @@
 
 Please refer to the preprint. 
 
-**Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations.**  
-Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu
-
-https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
+**Neural relational inference to learn long-range allosteric interactions in proteins from molecular dynamics simulations.**  
+Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu, Nature Communications 13, 1661 (2022). https://doi.org/10.1038/s41467-022-29331-3
 
 ### Requirements
 * Pytorch 1.2
