@@ -4,13 +4,6 @@
 
 ![Neural Relational Inference (NRI)](NRI-MD.png)
 
-Please refer to the preprint. 
-
-**Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations.**  
-Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu
-
-https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
-
 ### Requirements
 * Pytorch 1.2
 * Python 3.7
@@ -48,15 +41,11 @@ All the MD trajectories used in the study can be downloaded from https://doi.org
 
 ### Cite
 If you make use of this code in your own work, please cite our paper:
-```
-@article{zhu2021neural,
-  title={Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations},
-  author={Zhu, Jingxuan and Wang, Juexin and Han, Weiwei and Xu, Dong},
-  journal={bioRxiv},
-  year={2021},
-  publisher={Cold Spring Harbor Laboratory}
-}
-```
+
+**Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations.**  
+Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu
+
+https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
 
 ### Reference
 We thank the official implementation of neural relational inference at
