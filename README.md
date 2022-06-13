@@ -42,10 +42,10 @@ All the MD trajectories used in the study can be downloaded from https://doi.org
 ### Cite
 If you make use of this code in your own work, please cite our paper:
 
-**Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations.**  
-Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu
-
-https://www.biorxiv.org/content/10.1101/2021.01.20.427459v1
+**Neural relational inference to learn long-range allosteric interactions in proteins from molecular dynamics simulations.**  
+Jingxuan Zhu,  Juexin Wang, Weiwei Han,  Dong Xu,
+Nature communications 13, no. 1 (2022): 1-16.
+https://www.nature.com/articles/s41467-022-29331-3
 
 ### Reference
 We thank the official implementation of neural relational inference at
