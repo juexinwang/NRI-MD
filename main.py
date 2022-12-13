@@ -426,8 +426,8 @@ for epoch in range(args.epochs):
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         best_epoch = epoch
-np.save(str(args.save_folder)+'/out_edges_train.npy', edges_train)
-np.save(str(args.save_folder)+'/out_probs_train.npy', probs_train)
+np.save(save_folder+'out_edges_train.npy', edges_train)
+np.save(save_folder+'out_probs_train.npy', probs_train)
 print("Optimization Finished!")
 print("Best Epoch: {:04d}".format(best_epoch))
 if args.save_folder:
