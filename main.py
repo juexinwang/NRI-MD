@@ -96,7 +96,7 @@ if args.save_folder:
     save_folder = args.save_folder+args.jobid+'/logs/'
     # save_folder='/N/u/soicwang/BigRed200/projects/NRI-MD/logs/1212AAAA/logs/'
     if not os.path.isdir(save_folder):
-        os.mkdir(save_folder)
+        os.makedirs(save_folder)
     meta_file = os.path.join(save_folder, 'metadata.pkl')
     encoder_file = os.path.join(save_folder, 'encoder.pt')
     decoder_file = os.path.join(save_folder, 'decoder.pt')
