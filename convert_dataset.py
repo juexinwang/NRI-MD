@@ -151,7 +151,7 @@ if test_interval*timestep_size<totalModelNum:
 
 # check and Generate folder
 if not os.path.isdir(datafolder):
-    os.mkdir(datafolder)
+    os.makedirs(datafolder)
 
 # Generate training/validating/testing
 print("Generate Train")
