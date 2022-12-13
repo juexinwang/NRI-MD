@@ -10,10 +10,14 @@ from utils import *
 from modules import *
 
 parser = argparse.ArgumentParser(
-    'Neral relational inference for molecular dynamics simulations')
+    'Neral relational inference for molecular dynamics simulations in web server')
+parser.add_argument('--jobid', type=str, default='1213AAAA',
+                    help='Unique jobid from the front end')
+parser.add_argument('--inputdir', type=str, default='/N/u/soicwang/BigRed200/inputPDBDir/1213AAAA/data/',
+                    help='inputdir')
 parser.add_argument('--num-residues', type=int, default=77,
                     help='Number of residues of the PDB.')
-parser.add_argument('--save-folder', type=str, default='logs',
+parser.add_argument('--save-folder', type=str, default='/N/u/soicwang/BigRed200/projects/NRI-MD/logs/',
                     help='Where to save the trained model, leave empty to not save anything.')
 parser.add_argument('--load-folder', type=str, default='',
                     help='Where to load the trained model if finetunning. ' +
@@ -89,7 +93,8 @@ if args.save_folder:
     exp_counter = 0
     now = datetime.datetime.now()
     timestamp = now.isoformat()
-    save_folder = args.save_folder+'/'
+    save_folder = args.save_folder+args.jobid+'/logs/'
+    # save_folder='/N/u/soicwang/BigRed200/projects/NRI-MD/logs/1212AAAA/logs/'
     if not os.path.isdir(save_folder):
         os.mkdir(save_folder)
     meta_file = os.path.join(save_folder, 'metadata.pkl')
@@ -105,7 +110,7 @@ else:
           "Testing (within this script) will throw an error.")
 
 # load data
-train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_dataset_train_valid_test(
+train_loader, valid_loader, test_loader, loc_max, loc_min, vel_max, vel_min = load_dataset_train_valid_test(args.inputdir,
     args.batch_size, args.number_exp, args.number_expstart, args.dims)
 
 

@@ -115,9 +115,9 @@ def binary_accuracy(output, labels):
     return correct / len(labels)
 
 
-def load_dataset_train(batch_size=1, suffix='', number_exp=1, dims=6):
-    feat_train = np.load('data/features.npy')
-    edges_train = np.load('data/edges.npy')
+def load_dataset_train(inputdir='data/',batch_size=1, suffix='', number_exp=1, dims=6):
+    feat_train = np.load(inputdir+'features.npy')
+    edges_train = np.load(inputdir+'edges.npy')
 
     assert(feat_train.shape[0] >= number_exp)
     assert(feat_train.shape[2] >= dims)
@@ -154,13 +154,13 @@ def load_dataset_train(batch_size=1, suffix='', number_exp=1, dims=6):
     return train_data_loader, feat_max, feat_min
 
 
-def load_dataset_train_valid_test(batch_size=1, number_exp=1, number_expstart=0, dims=6):
-    feat_train = np.load('data/features.npy')
-    edges_train = np.load('data/edges.npy')
-    feat_valid = np.load('data/features_valid.npy')
-    edges_valid = np.load('data/edges_valid.npy')
-    feat_test = np.load('data/features_test.npy')
-    edges_test = np.load('data/edges_test.npy')
+def load_dataset_train_valid_test(inputdir='data/',batch_size=1, number_exp=1, number_expstart=0, dims=6):
+    feat_train = np.load(inputdir+'features.npy')
+    edges_train = np.load(inputdir+'edges.npy')
+    feat_valid = np.load(inputdir+'features_valid.npy')
+    edges_valid = np.load(inputdir+'edges_valid.npy')
+    feat_test = np.load(inputdir+'features_test.npy')
+    edges_test = np.load(inputdir+'edges_test.npy')
 
     assert (feat_train.shape[0] >= number_exp)
     assert (feat_train.shape[2] >= dims)
@@ -237,11 +237,11 @@ def load_dataset_train_valid_test(batch_size=1, number_exp=1, number_expstart=0,
     return train_data_loader, valid_data_loader, test_data_loader, loc_max, loc_min, vel_max, vel_min
 
 
-def load_dataset_train_test(batch_size=1, number_exp=1, number_expstart=0, dims=6):
-    feat_train = np.load('data/features.npy')
-    edges_train = np.load('data/edges.npy')
-    feat_test = np.load('data/features_test.npy')
-    edges_test = np.load('data/edges_test.npy')
+def load_dataset_train_test(inputdir='data/',batch_size=1, number_exp=1, number_expstart=0, dims=6):
+    feat_train = np.load(inputdir+'features.npy')
+    edges_train = np.load(inputdir+'edges.npy')
+    feat_test = np.load(inputdir+'features_test.npy')
+    edges_test = np.load(inputdir+'edges_test.npy')
 
     assert(feat_train.shape[0] >= number_exp)
     assert(feat_train.shape[2] >= dims)
@@ -301,18 +301,18 @@ def load_dataset_train_test(batch_size=1, number_exp=1, number_expstart=0, dims=
     return train_data_loader, test_data_loader, loc_max, loc_min, vel_max, vel_min
 
 
-def load_data(batch_size=1, suffix=''):
-    loc_train = np.load('data/loc_train' + suffix + '.npy')
-    vel_train = np.load('data/vel_train' + suffix + '.npy')
-    edges_train = np.load('data/edges_train' + suffix + '.npy')
+def load_data(inputdir='data/',batch_size=1, suffix=''):
+    loc_train = np.load(inputdir+'loc_train' + suffix + '.npy')
+    vel_train = np.load(inputdir+'vel_train' + suffix + '.npy')
+    edges_train = np.load(inputdir+'edges_train' + suffix + '.npy')
 
-    loc_valid = np.load('data/loc_valid' + suffix + '.npy')
-    vel_valid = np.load('data/vel_valid' + suffix + '.npy')
-    edges_valid = np.load('data/edges_valid' + suffix + '.npy')
+    loc_valid = np.load(inputdir+'loc_valid' + suffix + '.npy')
+    vel_valid = np.load(inputdir+'vel_valid' + suffix + '.npy')
+    edges_valid = np.load(inputdir+'edges_valid' + suffix + '.npy')
 
-    loc_test = np.load('data/loc_test' + suffix + '.npy')
-    vel_test = np.load('data/vel_test' + suffix + '.npy')
-    edges_test = np.load('data/edges_test' + suffix + '.npy')
+    loc_test = np.load(inputdir+'loc_test' + suffix + '.npy')
+    vel_test = np.load(inputdir+'vel_test' + suffix + '.npy')
+    edges_test = np.load(inputdir+'edges_test' + suffix + '.npy')
 
     # [num_samples, num_timesteps, num_dims, num_atoms]
     num_atoms = loc_train.shape[3]

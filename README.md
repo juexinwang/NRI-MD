@@ -1,5 +1,5 @@
-**Note**
-This is webserver version
+**Note:**
+This is webserver version!
 
 # Neural relational inference to learn allosteric long-range interactions in proteins from molecular dynamics simulations
 
