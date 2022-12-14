@@ -6,7 +6,7 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(
-    'Visualize the distribution of learned edges between residues.')
+    'Visualize the distribution of learned edges between residues. Running on both backend and frontend')
 parser.add_argument('--num-residues', type=int, default=77,
                     help='Number of residues of the PDB.')
 parser.add_argument('--windowsize', type=int, default=56,
@@ -15,13 +15,17 @@ parser.add_argument('--threshold', type=float, default=0.6,
                     help='threshold for plotting')
 parser.add_argument('--dist-threshold', type=int, default=12,
                     help='threshold for shortest distance')
-parser.add_argument('--filename', type=str, default='logs/out_probs_train.npy',
+parser.add_argument('--fileDir', type=str, default='/N/u/soicwang/BigRed200/projects/NRI-MD/logs/1213AAAA/logs/',
                     help='File name of the probs file.')
+parser.add_argument('--outputDir', type=str, default='/N/u/soicwang/BigRed200/projects/NRI-MD/logs/1213AAAA/analysis/',
+                    help='File of shortest path from source to targets')
+parser.add_argument('--domainInput', type=str, default='domainA_1_10,domainB_11_20,domainC_21_77',
+                    help='Set domain, only calculate domain information if domainInput has information ')
 args = parser.parse_args()
 
 
 def getEdgeResults(threshold=False):
-    a = np.load(args.filename)
+    a = np.load(args.fileDir+'out_probs_train.npy')
     b = a[:, :, 1]
     c = a[:, :, 2]
     d = a[:, :, 3]
@@ -58,7 +62,7 @@ def getEdgeResults(threshold=False):
     return edges_results
 
 
-def getDomainEdges(edges_results, domainName):
+def getDomainEdgesSpec(edges_results, domainName):
 
     if domainName == 'b1':
         startLoc = 0
@@ -132,38 +136,86 @@ def getDomainEdges(edges_results, domainName):
     return edges_to_all
 
 
+def getDomainEdges(edges_results, domainName):
+
+    startLoc = startLocDict[domainName]
+    endLoc = endLocDict[domainName]
+
+    edge_num_List = []
+    for domain in domainNameList:
+        edge_num_List.append(edges_results[startLocDict[domain]:endLocDict[domain]+1, startLoc:endLoc].sum(axis=0))
+
+    edge_average_List = []
+    count = 0
+    for domain in domainNameList:
+        if domain == domainName:
+            edge_average_List.append(0)
+        else:
+            edge_average_List.append(edge_num_List[count].sum(axis=0)/((int(endLocDict[domain]-startLocDict[domain])+1)*(endLoc-startLoc)))
+        count += 1
+
+    edges_to_all = np.hstack(edge_average_List)
+    return edges_to_all
+
+if not os.path.exists(args.outputDir):
+    os.makedirs(args.outputDir)
+out_file = args.outputDir+'probs.png'
+
 # Load distribution of learned edges
 edges_results_visual = getEdgeResults(threshold=True)
 # Step 1: Visualize results
 ax = sns.heatmap(edges_results_visual, linewidth=0.5,
                  cmap="Blues", vmax=1.0, vmin=0.0)
-plt.savefig('logs/probs.png', dpi=600)
+plt.savefig(out_file, dpi=600)
 # plt.show()
 plt.close()
+
 
 # Step 2: Get domain specific results
+# Ad hoc usage in original study
 # According to the distribution of learned edges between residues, we integrated adjacent residues as blocks for a more straightforward observation of the interactions.
 # For example, the residues in SOD1 structure are divided into seven domains (β1, diml, disl, zl, β2, el, β3).
+# Here we used web server version of the domain calculation
+##
 
-edges_results = getEdgeResults(threshold=False)
-# SOD1 specific:
-b1 = getDomainEdges(edges_results, 'b1')
-diml = getDomainEdges(edges_results, 'diml')
-disl = getDomainEdges(edges_results, 'disl')
-zl = getDomainEdges(edges_results, 'zl')
-b2 = getDomainEdges(edges_results, 'b2')
-el = getDomainEdges(edges_results, 'el')
-b3 = getDomainEdges(edges_results, 'b3')
-edges_results = np.vstack((b1, diml, disl, zl, b2, el, b3))
-# print(edges_results)
-edges_results_T = edges_results.T
-index = edges_results_T < (args.threshold)
-edges_results_T[index] = 0
+if not args.domainInput == '':
+    edges_results = getEdgeResults(threshold=False)
+    ################# Ad hoc solution #######
+    # SOD1 specific:
+    # b1 = getDomainEdgesSpec(edges_results, 'b1')
+    # diml = getDomainEdgesSpec(edges_results, 'diml')
+    # disl = getDomainEdgesSpec(edges_results, 'disl')
+    # zl = getDomainEdgesSpec(edges_results, 'zl')
+    # b2 = getDomainEdgesSpec(edges_results, 'b2')
+    # el = getDomainEdgesSpec(edges_results, 'el')
+    # b3 = getDomainEdgesSpec(edges_results, 'b3')
+    # edges_results = np.vstack((b1, diml, disl, zl, b2, el, b3))
+    # print(edges_results)
+    #########################################
 
-# Visualize
-ax = sns.heatmap(edges_results_T, linewidth=1,
-                 cmap="Blues", vmax=1.0, vmin=0.0)
-ax.set_ylim([7, 0])
-plt.savefig('logs/edges_domain.png', dpi=600)
-# plt.show()
-plt.close()
+    startLocDict = {}
+    endLocDict = {}
+    domainList = args.domainInput.split[',']
+    domainNameList = []
+    for domainInfo in domainList:
+        words = domainInfo.split('_')
+        startLocDict[words[0]]=int(words[1])
+        endLocDict[words[0]]=int(words[2])
+        domainNameList.append(words[0])
+
+    tlist = []
+    for domain in domainNameList:
+        tlist.append(getDomainEdgesSpec(edges_results, domain))
+    edges_results = np.vstack(tlist)
+
+    edges_results_T = edges_results.T
+    index = edges_results_T < (args.threshold)
+    edges_results_T[index] = 0
+
+    # Visualize
+    ax = sns.heatmap(edges_results_T, linewidth=1,
+                    cmap="Blues", vmax=1.0, vmin=0.0)
+    ax.set_ylim([len(domainList), 0])
+    plt.savefig(args.outputDir+'edges_domain.png', dpi=600)
+    # plt.show()
+    plt.close()
