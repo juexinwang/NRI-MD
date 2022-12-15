@@ -195,7 +195,8 @@ if not args.domainInput == ',':
 
     startLocDict = {}
     endLocDict = {}
-    domainList = args.domainInput.split[',']
+    tmpstr = args.domainInput
+    domainList = tmpstr.split[',']
     domainNameList = []
     for domainInfo in domainList:
         words = domainInfo.split('_')
