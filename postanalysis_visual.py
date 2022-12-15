@@ -178,7 +178,7 @@ plt.close()
 # Here we used web server version of the domain calculation
 ##
 
-if not args.domainInput == '':
+if not args.domainInput == ',':
     edges_results = getEdgeResults(threshold=False)
     ################# Ad hoc solution #######
     # SOD1 specific:
