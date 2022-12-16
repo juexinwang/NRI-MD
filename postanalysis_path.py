@@ -85,7 +85,8 @@ dists_matrix = list()
 # original is a list
 tmp_matrix = np.zeros((args.num_residues, args.num_residues))
 df = pd.read_csv(args.PDBfilename, sep='\s+', names=[
-    'ATOM', 'n1', 'CA', 'AA', 'Chain', 'n2', 'x', 'y', 'z', 'n3', 'n4', 'C'])  # temparory DataFrame
+    'ATOM', 'n1', 'CA', 'AA', 'n2', 'x', 'y', 'z', 'n3', 'n4', 'C'])  # temparory DataFrame
+    # 'ATOM', 'n1', 'CA', 'AA', 'Chain', 'n2', 'x', 'y', 'z', 'n3', 'n4', 'C'])  # temparory DataFrame
 tdf = df.iloc[1:(args.num_residues+1)]
 for ind_1 in range(args.num_residues-1):
     for ind_2 in range(ind_1+1, args.num_residues):
