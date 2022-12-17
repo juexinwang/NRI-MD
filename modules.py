@@ -632,7 +632,8 @@ class RNNDecoder(nn.Module):
                 else:
                     ins = pred_all[step - 1]
             else:
-                assert (pred_steps <= time_steps)
+                ## It may not need to do the assert
+                # assert (pred_steps <= time_steps)
                 # Use ground truth trajectory input vs. last prediction
                 if not step % pred_steps:
                     ins = inputs[:, step, :, :]
