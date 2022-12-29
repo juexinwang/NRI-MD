@@ -168,6 +168,13 @@ edges_results_visual = getEdgeResults(threshold=True)
 # Step 1: Visualize results
 ax = sns.heatmap(edges_results_visual, linewidth=0.5,
                  cmap="Blues", vmax=1.0, vmin=0.0)
+labels=np.arange(1,edges_results_visual.shape[0]+1)
+ax.set_xticklabels(labels)
+ax.set_yticklabels(labels)
+ax.set_xlabel('Residues')
+ax.set_ylabel('Residues')
+ax.set_title('Heatmap of the Inferred Interactions')
+# plt.tight_layout(pad=0, w_pad=0, h_pad=0)
 plt.savefig(out_file, dpi=600)
 # plt.show()
 plt.close()
@@ -217,7 +224,12 @@ if not args.domainInput == ',':
     # Visualize
     ax = sns.heatmap(edges_results_T, linewidth=1,
                     cmap="Blues", vmax=1.0, vmin=0.0)
-    ax.set_ylim([len(domainList), 0])
+    labels=np.arange(1,len(domainNameList)+1)
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
+    ax.set_xlabel('Domains')
+    ax.set_ylabel('Domains')
+    ax.set_title('Heatmap of the Inferred Interactions between Domains')
     plt.savefig(args.outputDir+'edges_domain.png', dpi=600)
     # plt.show()
     plt.close()
