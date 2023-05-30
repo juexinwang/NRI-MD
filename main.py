@@ -10,7 +10,7 @@ from utils import *
 from modules import *
 
 parser = argparse.ArgumentParser(
-    'Neural relational inference for molecular dynamics simulations in web server')
+    'Neural relational inference for molecular dynamics simulations in web server with half-precision')
 parser.add_argument('--jobid', type=str, default='1213AAAA',
                     help='Unique jobid from the front end')
 parser.add_argument('--inputdir', type=str, default='/N/u/soicwang/BigRed200/inputPDBDir/1213AAAA/data/',
