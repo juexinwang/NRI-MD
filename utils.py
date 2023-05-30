@@ -551,12 +551,14 @@ def get_correct_per_bucket_(bucket_idx, pred, target):
 
 
 def kl_categorical(preds, log_prior, num_atoms, eps=1e-16):
+    preds = preds.float()
     kl_div = preds * (torch.log(preds + eps) - log_prior)
     return kl_div.sum() / (num_atoms * preds.size(0))
 
 
 def kl_categorical_uniform(preds, num_atoms, num_edge_types, add_const=False,
                            eps=1e-16):
+    preds = preds.float()
     kl_div = preds * torch.log(preds + eps)
     if add_const:
         const = np.log(num_edge_types)

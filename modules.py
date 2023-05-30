@@ -37,10 +37,11 @@ class MLP(nn.Module):
 
     def forward(self, inputs):
         # Input shape: [num_sims, num_things, num_features]
-        x = F.elu(self.fc1(inputs))
-        x = F.dropout(x, self.dropout_prob, training=self.training)
-        x = F.elu(self.fc2(x))
-        return self.batch_norm(x)
+        with torch.cuda.amp.autocast():
+            x = F.elu(self.fc1(inputs))
+            x = F.dropout(x, self.dropout_prob, training=self.training)
+            x = F.elu(self.fc2(x))
+            return self.batch_norm(x)
 
 
 class CNN(nn.Module):
@@ -144,8 +145,8 @@ class MLPEncoder(nn.Module):
             x = self.mlp3(x)
             x = torch.cat((x, x_skip), dim=2)  # Skip connection
             x = self.mlp4(x)
-
-        return self.fc_out(x)
+        with torch.cuda.amp.autocast():
+            return self.fc_out(x)
 
 
 class CNNEncoder(nn.Module):
@@ -558,12 +559,13 @@ class RNNDecoder(nn.Module):
                             rel_type, hidden):
 
         # node2edge
-        receivers = torch.matmul(rel_rec, hidden)
-        senders = torch.matmul(rel_send, hidden)
+        with torch.cuda.amp.autocast():
+            receivers = torch.matmul(rel_rec, hidden)
+            senders = torch.matmul(rel_send, hidden)
         pre_msg = torch.cat([receivers, senders], dim=-1)
 
         all_msgs = Variable(torch.zeros(pre_msg.size(0), pre_msg.size(1),
-                                        self.msg_out_shape))
+                                        self.msg_out_shape)).half()
         if inputs.is_cuda:
             all_msgs = all_msgs.cuda()
 
@@ -577,20 +579,22 @@ class RNNDecoder(nn.Module):
         # Run separate MLP for every edge type
         # NOTE: To exlude one edge type, simply offset range by 1
         for i in range(start_idx, len(self.msg_fc2)):
-            msg = torch.tanh(self.msg_fc1[i](pre_msg))
-            msg = F.dropout(msg, p=self.dropout_prob)
-            msg = torch.tanh(self.msg_fc2[i](msg))
-            msg = msg * rel_type[:, :, i:i + 1]
-            all_msgs += msg / norm
+            with torch.cuda.amp.autocast():
+                msg = torch.tanh(self.msg_fc1[i](pre_msg))
+                msg = F.dropout(msg, p=self.dropout_prob)
+                msg = torch.tanh(self.msg_fc2[i](msg))
+                msg = msg * rel_type[:, :, i:i + 1]
+                all_msgs += msg / norm
 
         agg_msgs = all_msgs.transpose(-2, -1).matmul(rel_rec).transpose(-2,
                                                                         -1)
         agg_msgs = agg_msgs.contiguous() / inputs.size(2)  # Average
 
         # GRU-style gated aggregation
-        r = torch.sigmoid(self.input_r(inputs) + self.hidden_r(agg_msgs))
-        i = torch.sigmoid(self.input_i(inputs) + self.hidden_i(agg_msgs))
-        n = torch.tanh(self.input_n(inputs) + r * self.hidden_h(agg_msgs))
+        with torch.cuda.amp.autocast():
+            r = torch.sigmoid(self.input_r(inputs) + self.hidden_r(agg_msgs))
+            i = torch.sigmoid(self.input_i(inputs) + self.hidden_i(agg_msgs))
+            n = torch.tanh(self.input_n(inputs) + r * self.hidden_h(agg_msgs))
         hidden = (1 - i) * n + i * hidden
 
         # Output MLP

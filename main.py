@@ -10,7 +10,7 @@ from utils import *
 from modules import *
 
 parser = argparse.ArgumentParser(
-    'Neral relational inference for molecular dynamics simulations in web server')
+    'Neural relational inference for molecular dynamics simulations in web server')
 parser.add_argument('--jobid', type=str, default='1213AAAA',
                     help='Unique jobid from the front end')
 parser.add_argument('--inputdir', type=str, default='/N/u/soicwang/BigRed200/inputPDBDir/1213AAAA/data/',
@@ -120,8 +120,8 @@ off_diag = np.ones([args.num_residues, args.num_residues]
 
 rel_rec = np.array(encode_onehot(np.where(off_diag)[1]), dtype=np.float32)
 rel_send = np.array(encode_onehot(np.where(off_diag)[0]), dtype=np.float32)
-rel_rec = torch.FloatTensor(rel_rec)
-rel_send = torch.FloatTensor(rel_send)
+rel_rec = torch.HalfTensor(rel_rec)
+rel_send = torch.HalfTensor(rel_send)
 
 if args.encoder == 'mlp':
     encoder = MLPEncoder(args.timesteps * args.dims, args.encoder_hidden,
@@ -190,7 +190,8 @@ if args.cuda:
 rel_rec = Variable(rel_rec)
 rel_send = Variable(rel_send)
 
-
+# print(torch.cuda.mem_get_info())
+# print(torch.cuda.current_device())
 def train(epoch, best_val_loss):
     t = time.time()
     nll_train = []
@@ -200,6 +201,7 @@ def train(epoch, best_val_loss):
     edges_train = []
     probs_train = []
 
+    # print(torch.cuda.mem_get_info())
     encoder.train()
     decoder.train()
 
@@ -253,6 +255,7 @@ def train(epoch, best_val_loss):
     acc_val = []
     kl_val = []
     mse_val = []
+    # print(torch.cuda.mem_get_info())
 
     encoder.eval()
     decoder.eval()
