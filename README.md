@@ -5,36 +5,90 @@
 ![Neural Relational Inference (NRI)](NRI-MD.png)
 
 ### Requirements
-* Pytorch 1.2
-* Python 3.7
-* networkx 2.5 (Optional, only used in post analysis)
+* Python 3.10+
+* PyTorch 2.0+ (with optional CUDA 11.8 support)
+* NumPy, SciPy, Matplotlib, Seaborn, Pandas, NetworkX
+
+### Installation
+
+#### Option 1: Install from source
+```bash
+git clone https://github.com/juexinwang/NRI-MD.git
+cd NRI-MD
+
+# For CPU-only installation
+pip install -r requirements.txt
+pip install -e .
+
+# For CUDA 11.8 installation
+pip install -r requirements-cuda118.txt
+pip install -e .
+```
+
+#### Option 2: Using pip with CUDA 11.8 support
+```bash
+pip install -e .[cuda118]
+```
+
+#### Option 3: Development installation
+```bash
+pip install -e .[dev]
+```
 
 ### Prepare Molecular Simulation Trajectories
 
 Place your molecular simulation trajectories in data/pdb folder. We have ca_1.pdb for the tutorial usage.
 
-```
-python convert_dataset.py
+```bash
+# Using the command-line tool
+nri-md-convert --data-dir data/pdb --output-dir data
+
+# Or using Python module
+python -m nri_md.convert_dataset --data-dir data/pdb --output-dir data
 ```
 
-This step will seperate train/validation/test dataset, and generate .npy files in data folder.
+This step will separate train/validation/test dataset, and generate .npy files in data folder.
 
 ### Run experiments
 
-From the project's root folder, simply run
-```
-python main.py
-```
-### Post Analysis
-Visualize the inferred the interaction between residues and domains
-```
-python postanalysis_visual.py
+From the project's root folder, simply run:
+```bash
+# Using the command-line tool
+nri-md-train --num-residues 77 --epochs 500
+
+# Or using Python module
+python -m nri_md.main --num-residues 77 --epochs 500
 ```
 
-Find the shortest path between residues
+### Post Analysis
+
+#### Visualize the inferred interaction between residues and domains
+```bash
+# Using the command-line tool
+nri-md-visualize --filename logs/out_probs_train.npy --num-residues 77
+
+# Or using Python module
+python -m nri_md.postanalysis_visual --filename logs/out_probs_train.npy --num-residues 77
 ```
-python postanalysis_path.py
+
+#### Find the shortest path between residues
+```bash
+# Using the command-line tool
+nri-md-path --filename logs/out_probs_train.npy --source-node 46 --num-residues 77
+
+# Or using Python module
+python -m nri_md.postanalysis_path --filename logs/out_probs_train.npy --source-node 46 --num-residues 77
 ```
+
+### Python 3.10+ Features
+
+This updated version takes advantage of Python 3.10+ features including:
+- Type hints with modern syntax
+- Improved error handling
+- Better code organization with proper package structure
+- Modern PyTorch compatibility (2.0+)
+- Optional CUDA 11.8 support
+- Command-line tools for easy usage
 
 ### Data availability
 All the MD trajectories used in the study can be downloaded from https://doi.org/10.5281/zenodo.5941385
